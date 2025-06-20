@@ -11,10 +11,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Database configuration
-$db_host = 'localhost';
-$db_name = 'atechto1_INFOBASE';
-$db_user = 'atechto1_INFOBASEUSER';
-$db_pass = '5wG}We8_R,6A';
+$db_host = getenv('DB_HOST');
+$db_name = getenv('DB_NAME');
+$db_user = getenv('DB_USER');
+$db_pass = getenv('DB_PASS');
 
 // Connect to MySQL
 try {
