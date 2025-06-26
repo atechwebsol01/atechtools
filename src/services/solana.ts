@@ -27,6 +27,7 @@ import {
   Keypair,
   SystemProgram,
   Transaction,
+  SendOptions,
 } from '@solana/web3.js';
 
 // Import the metadata functions
@@ -48,6 +49,57 @@ import {
   ENTERPRISE_CREATION_FEE,
   getMetadataFee
 } from '../config';
+
+// BLOWFISH FIX: Enhanced wallet interface to detect signAndSendTransaction support
+interface EnhancedWallet {
+  publicKey: PublicKey | null;
+  signTransaction?: (transaction: Transaction) => Promise<Transaction>;
+  signAllTransactions?: (transactions: Transaction[]) => Promise<Transaction[]>;
+  signAndSendTransaction?: (transaction: Transaction, options?: SendOptions) => Promise<{ signature: string }>;
+}
+
+// BLOWFISH FIX: Smart transaction sender that prefers signAndSendTransaction
+async function sendTransactionSmart(
+  wallet: any,
+  transaction: Transaction,
+  connection: Connection
+): Promise<string> {
+  const enhancedWallet = wallet as EnhancedWallet;
+  
+  // BLOWFISH PREFERENCE: Try signAndSendTransaction first for security compliance
+  if (enhancedWallet.signAndSendTransaction) {
+    console.log("🔒 Using signAndSendTransaction for enhanced security compliance");
+    
+    const result = await enhancedWallet.signAndSendTransaction(transaction, {
+      skipPreflight: false,
+      preflightCommitment: 'confirmed',
+      maxRetries: 3,
+    });
+
+    console.log('✅ Transaction sent via signAndSendTransaction:', result.signature);
+    return result.signature;
+  }
+  
+  // FALLBACK: Use your original working method if signAndSendTransaction not available
+  console.log("🔄 Falling back to signTransaction + sendRawTransaction");
+  
+  if (!enhancedWallet.signTransaction) {
+    throw new Error('Wallet does not support any compatible transaction signing method');
+  }
+
+  console.log("🔏 Getting wallet signature...");
+  const signedTx = await enhancedWallet.signTransaction(transaction);
+  
+  console.log("📡 Sending transaction...");
+  const signature = await connection.sendRawTransaction(signedTx.serialize(), {
+    skipPreflight: false,
+    preflightCommitment: 'confirmed',
+    maxRetries: 3
+  });
+
+  console.log('✅ Transaction sent via signTransaction + sendRawTransaction:', signature);
+  return signature;
+}
 
 // Multiple RPC endpoints with fallback
 const RPC_ENDPOINTS = {
@@ -134,7 +186,7 @@ interface CreateTokenResult {
 
 /**
  * Creates an SPL Token-2022 token with transfer fee extension AND metadata extensions
- * This version includes both metadata pointer and token metadata for proper explorer display
+ * BLOWFISH FIX: Now uses signAndSendTransaction when available for security compliance
  */
 export async function createToken(
   wallet: any,
@@ -393,23 +445,21 @@ export async function createToken(
     // Sign with the mint keypair
     tx.partialSign(mintKeypair);
 
-    console.log("🔏 Getting wallet signature...");
-    const signedTx = await wallet.signTransaction(tx);
-    console.log("📡 Sending transaction...");
-    const sig = await connection.sendRawTransaction(signedTx.serialize(), {
-      skipPreflight: false,
-      preflightCommitment: 'confirmed',
-      maxRetries: 3
-    });
+    // BLOWFISH FIX: Use smart transaction sender that prefers signAndSendTransaction
+    console.log("🚀 Sending transaction with enhanced security method...");
+    const sig = await sendTransactionSmart(wallet, tx, connection);
+    
     console.log("⏳ Confirming transaction...");
     const confirmation = await connection.confirmTransaction({
       signature: sig,
       blockhash,
       lastValidBlockHeight
     }, 'confirmed');
+    
     if (confirmation.value.err) {
       throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`);
     }
+    
     console.log("✅ Token created successfully with metadata extensions:", mintKeypair.publicKey.toString());
     console.log(`✅ Transfer fee: ${transferFeeBps / 100}% going to ${plan === 'enterprise' ? 'creator' : 'treasury'}: ${withdrawAuthority.toString()}`);
     console.log(`✅ Freeze Authority: ${freezeAuthority ? 'ENABLED' : 'DISABLED (revoked)'}`);
@@ -420,6 +470,7 @@ export async function createToken(
       console.log("📝 Metadata URI:", metadataUri);
     }
     console.log("🎉 Token should display name and symbol immediately on compatible explorers!");
+    
     return {
       mint: mintKeypair.publicKey,
       signature: sig,
@@ -631,7 +682,7 @@ export async function findAccountsWithWithheldFees(
 
 /**
  * Claims creator royalties (withheld transfer fees) for a specific token
- * FIXED: Now includes proper two-step Token-2022 process with 0.005 SOL fee
+ * BLOWFISH FIX: Now uses signAndSendTransaction when available for security compliance
  */
 export async function claimCreatorRoyalties(
   wallet: any,
@@ -755,202 +806,194 @@ export async function claimCreatorRoyalties(
     }
 
     // STEP 3: Create the claiming transaction with proper two-step process
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
-    const tx = new Transaction();
-    tx.recentBlockhash = blockhash;
-    tx.feePayer = wallet.publicKey;
+   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
+   const tx = new Transaction();
+   tx.recentBlockhash = blockhash;
+   tx.feePayer = wallet.publicKey;
 
-    // 3a. Add claiming fee payment to treasury FIRST
-    console.log(`💸 Adding 0.005 SOL claiming fee payment to treasury: ${treasuryWallet.toString()}`);
-    tx.add(
-      SystemProgram.transfer({
-        fromPubkey: wallet.publicKey,
-        toPubkey: treasuryWallet,
-        lamports: claimingFee
-      })
-    );
+   // 3a. Add claiming fee payment to treasury FIRST
+   console.log(`💸 Adding 0.005 SOL claiming fee payment to treasury: ${treasuryWallet.toString()}`);
+   tx.add(
+     SystemProgram.transfer({
+       fromPubkey: wallet.publicKey,
+       toPubkey: treasuryWallet,
+       lamports: claimingFee
+     })
+   );
 
-    // 3b. Create ATA if needed
-    if (needsATA) {
-      console.log("🆕 Adding create ATA instruction...");
-      tx.add(
-        createAssociatedTokenAccountInstruction(
-          wallet.publicKey,
-          destinationAta,
-          wallet.publicKey,
-          mint,
-          TOKEN_2022_PROGRAM_ID,
-          ASSOCIATED_TOKEN_PROGRAM_ID
-        )
-      );
-    }
+   // 3b. Create ATA if needed
+   if (needsATA) {
+     console.log("🆕 Adding create ATA instruction...");
+     tx.add(
+       createAssociatedTokenAccountInstruction(
+         wallet.publicKey,
+         destinationAta,
+         wallet.publicKey,
+         mint,
+         TOKEN_2022_PROGRAM_ID,
+         ASSOCIATED_TOKEN_PROGRAM_ID
+       )
+     );
+   }
 
-    // STEP 4: Two-step Token-2022 fee collection process
-    
-    // 4a. HARVEST: Collect fees from all accounts to the mint (permissionless operation)
-    console.log("🌾 Adding harvest withheld tokens to mint instruction...");
-    tx.add(
-      createHarvestWithheldTokensToMintInstruction(
-        mint,                    // mint where fees will be collected
-        accountsWithFees,        // accounts with withheld fees
-        TOKEN_2022_PROGRAM_ID    // Token-2022 program
-      )
-    );
+   // STEP 4: Two-step Token-2022 fee collection process
+   
+   // 4a. HARVEST: Collect fees from all accounts to the mint (permissionless operation)
+   console.log("🌾 Adding harvest withheld tokens to mint instruction...");
+   tx.add(
+     createHarvestWithheldTokensToMintInstruction(
+       mint,                    // mint where fees will be collected
+       accountsWithFees,        // accounts with withheld fees
+       TOKEN_2022_PROGRAM_ID    // Token-2022 program
+     )
+   );
 
-    // 4b. WITHDRAW: Transfer collected fees from mint to creator (requires withdraw authority)
-    console.log("📤 Adding withdraw withheld tokens from mint instruction...");
-    tx.add(
-      createWithdrawWithheldTokensFromMintInstruction(
-        mint,                    // mint
-        destinationAta,          // destination (creator's token account)
-        wallet.publicKey,        // withdrawWithheldAuthority (the creator)
-        [],                      // signers
-        TOKEN_2022_PROGRAM_ID    // programId
-      )
-    );
+   // 4b. WITHDRAW: Transfer collected fees from mint to creator (requires withdraw authority)
+   console.log("📤 Adding withdraw withheld tokens from mint instruction...");
+   tx.add(
+     createWithdrawWithheldTokensFromMintInstruction(
+       mint,                    // mint
+       destinationAta,          // destination (creator's token account)
+       wallet.publicKey,        // withdrawWithheldAuthority (the creator)
+       [],                      // signers
+       TOKEN_2022_PROGRAM_ID    // programId
+     )
+   );
 
-    console.log("🔏 Getting wallet signature...");
-    const signedTx = await wallet.signTransaction(tx);
-    
-    console.log("📡 Sending transaction...");
-    const signature = await connection.sendRawTransaction(signedTx.serialize(), {
-      skipPreflight: false,
-      preflightCommitment: 'confirmed',
-      maxRetries: 3,
-    });
+   // BLOWFISH FIX: Use smart transaction sender that prefers signAndSendTransaction
+   console.log("🚀 Claiming royalties with enhanced security method...");
+   const signature = await sendTransactionSmart(wallet, tx, connection);
 
-    console.log("⏳ Confirming transaction...", signature);
-    const confirmation = await connection.confirmTransaction({
-      signature,
-      blockhash,
-      lastValidBlockHeight
-    }, 'confirmed');
+   console.log("⏳ Confirming transaction...", signature);
+   const confirmation = await connection.confirmTransaction({
+     signature,
+     blockhash,
+     lastValidBlockHeight
+   }, 'confirmed');
 
-    if (confirmation.value.err) {
-      throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`);
-    }
+   if (confirmation.value.err) {
+     throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`);
+   }
 
-    console.log("✅ Creator royalties claimed successfully!");
-    console.log(`💰 Total claimed: ${totalWithheldAmount} (raw amount)`);
-    console.log(`💸 Claiming fee paid: 0.005 SOL`);
-    console.log(`📝 Transaction signature: ${signature}`);
+   console.log("✅ Creator royalties claimed successfully!");
+   console.log(`💰 Total claimed: ${totalWithheldAmount} (raw amount)`);
+   console.log(`💸 Claiming fee paid: 0.005 SOL`);
+   console.log(`📝 Transaction signature: ${signature}`);
 
-    return {
-      success: true,
-      signature,
-      totalClaimed: totalWithheldAmount
-    };
+   return {
+     success: true,
+     signature,
+     totalClaimed: totalWithheldAmount
+   };
 
-  } catch (error) {
-    console.error("❌ Error claiming creator royalties:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error occurred"
-    };
-  }
+ } catch (error) {
+   console.error("❌ Error claiming creator royalties:", error);
+   return {
+     success: false,
+     error: error instanceof Error ? error.message : "Unknown error occurred"
+   };
+ }
 }
 
 /**
- * Claims treasury fees for admin dashboard
- */
+* Claims treasury fees for admin dashboard
+* BLOWFISH FIX: Now uses signAndSendTransaction when available for security compliance
+*/
 export async function claimTreasuryFees(
-  wallet: any,
-  mint: string | PublicKey,
-  isMainnet: boolean = true
+ wallet: any,
+ mint: string | PublicKey,
+ isMainnet: boolean = true
 ): Promise<{ success: boolean; signature?: string; error?: string; totalClaimed?: number }> {
-  try {
-    if (!wallet?.publicKey) {
-      throw new Error("Wallet not connected");
-    }
+ try {
+   if (!wallet?.publicKey) {
+     throw new Error("Wallet not connected");
+   }
 
-    // Convert mint to PublicKey if it's a string
-    const mintPubkey = typeof mint === 'string' ? new PublicKey(mint) : mint;
-    const connection = getConnection(isMainnet);
+   // Convert mint to PublicKey if it's a string
+   const mintPubkey = typeof mint === 'string' ? new PublicKey(mint) : mint;
+   const connection = getConnection(isMainnet);
 
-    // Find all accounts that have withheld fees
-    const accounts = await findAccountsWithWithheldFees(mintPubkey);
-    
-    if (!accounts || accounts.length === 0) {
-      return {
-        success: false,
-        error: "No accounts with withheld fees found"
-      };
-    }
+   // Find all accounts that have withheld fees
+   const accounts = await findAccountsWithWithheldFees(mintPubkey);
+   
+   if (!accounts || accounts.length === 0) {
+     return {
+       success: false,
+       error: "No accounts with withheld fees found"
+     };
+   }
 
-    // Create transaction
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
-    const tx = new Transaction();
-    tx.recentBlockhash = blockhash;
-    tx.feePayer = wallet.publicKey;
+   // Create transaction
+   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+   const tx = new Transaction();
+   tx.recentBlockhash = blockhash;
+   tx.feePayer = wallet.publicKey;
 
-    // Get or create treasury token account
-    const treasuryPubkey = new PublicKey(TREASURY_WALLET);
-    const treasuryAta = await getAssociatedTokenAddress(
-      mintPubkey,
-      treasuryPubkey,
-      false,
-      TOKEN_2022_PROGRAM_ID,
-      ASSOCIATED_TOKEN_PROGRAM_ID
-    );
+   // Get or create treasury token account
+   const treasuryPubkey = new PublicKey(TREASURY_WALLET);
+   const treasuryAta = await getAssociatedTokenAddress(
+     mintPubkey,
+     treasuryPubkey,
+     false,
+     TOKEN_2022_PROGRAM_ID,
+     ASSOCIATED_TOKEN_PROGRAM_ID
+   );
 
-    // Check if treasury ATA exists, if not create it
-    try {
-      await connection.getAccountInfo(treasuryAta);
-    } catch {
-      tx.add(
-        createAssociatedTokenAccountInstruction(
-          wallet.publicKey,
-          treasuryAta,
-          treasuryPubkey,
-          mintPubkey,
-          TOKEN_2022_PROGRAM_ID,
-          ASSOCIATED_TOKEN_PROGRAM_ID
-        )
-      );
-    }
-    
-    // Add withdraw instruction to withdraw all fees from mint to treasury
-    tx.add(
-      createWithdrawWithheldTokensFromMintInstruction(
-        mintPubkey,          // mint
-        treasuryAta,         // destination
-        wallet.publicKey,    // withdrawWithheldAuthority
-        [],                  // signers
-        TOKEN_2022_PROGRAM_ID
-      )
-    );
+   // Check if treasury ATA exists, if not create it
+   try {
+     await connection.getAccountInfo(treasuryAta);
+   } catch {
+     tx.add(
+       createAssociatedTokenAccountInstruction(
+         wallet.publicKey,
+         treasuryAta,
+         treasuryPubkey,
+         mintPubkey,
+         TOKEN_2022_PROGRAM_ID,
+         ASSOCIATED_TOKEN_PROGRAM_ID
+       )
+     );
+   }
+   
+   // Add withdraw instruction to withdraw all fees from mint to treasury
+   tx.add(
+     createWithdrawWithheldTokensFromMintInstruction(
+       mintPubkey,          // mint
+       treasuryAta,         // destination
+       wallet.publicKey,    // withdrawWithheldAuthority
+       [],                  // signers
+       TOKEN_2022_PROGRAM_ID
+     )
+   );
 
-    // Sign and send transaction
-    console.log("🔏 Getting wallet signature...");
-    const signedTx = await wallet.signTransaction(tx);
-    console.log("📡 Sending transaction...");
-    const signature = await connection.sendRawTransaction(signedTx.serialize(), {
-      skipPreflight: false,
-      maxRetries: 3,
-    });
+   // BLOWFISH FIX: Use smart transaction sender that prefers signAndSendTransaction
+   console.log("🚀 Claiming treasury fees with enhanced security method...");
+   const signature = await sendTransactionSmart(wallet, tx, connection);
 
-    // Confirm transaction
-    const confirmation = await connection.confirmTransaction({
-      signature,
-      blockhash,
-      lastValidBlockHeight
-    });
+   // Confirm transaction
+   const confirmation = await connection.confirmTransaction({
+     signature,
+     blockhash,
+     lastValidBlockHeight
+   });
 
-    if (confirmation.value.err) {
-      throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`);
-    }
+   if (confirmation.value.err) {
+     throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`);
+   }
 
-    return {
-      success: true,
-      signature,
-      totalClaimed: accounts.length // We could add actual amount calculation if needed
-    };
+   console.log("✅ Treasury fees claimed successfully!");
 
-  } catch (error) {
-    console.error("Error claiming treasury fees:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error occurred"
-    };
-  }
+   return {
+     success: true,
+     signature,
+     totalClaimed: accounts.length // We could add actual amount calculation if needed
+   };
+
+ } catch (error) {
+   console.error("Error claiming treasury fees:", error);
+   return {
+     success: false,
+     error: error instanceof Error ? error.message : "Unknown error occurred"
+   };
+ }
 }
