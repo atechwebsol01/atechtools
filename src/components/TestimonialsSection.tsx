@@ -61,7 +61,7 @@ const testimonials: Testimonial[] = [
     name: 'Token Master',
     handle: '@tokenmaster',
     avatar: '🎯',
-    content: "Switched from Orion Tools and never looked back. The gamification keeps me creating more tokens. Level 42 creator! 💪",
+    content: "Switched from my old token creation platform and never looked back. The gamification keeps me creating more tokens. Level 42 creator! 💪",
     tokens: 15,
     earnings: '267.8 SOL',
     verified: true,

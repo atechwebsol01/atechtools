@@ -58,37 +58,47 @@ interface EnhancedWallet {
   signAndSendTransaction?: (transaction: Transaction, options?: SendOptions) => Promise<{ signature: string }>;
 }
 
-// BLOWFISH FIX: Smart transaction sender that prefers signAndSendTransaction
+// BLOWFISH FIX: Smart transaction sender that prefers wallet's sendTransaction
 async function sendTransactionSmart(
   wallet: any,
   transaction: Transaction,
   connection: Connection
 ): Promise<string> {
-  const enhancedWallet = wallet as EnhancedWallet;
+  // Check what's available
+  console.log("🔍 Available methods:", {
+    sendTransaction: typeof wallet.sendTransaction,
+    signTransaction: typeof wallet.signTransaction,
+    signAndSendTransaction: typeof wallet.signAndSendTransaction
+  });
   
-  // BLOWFISH PREFERENCE: Try signAndSendTransaction first for security compliance
-  if (enhancedWallet.signAndSendTransaction) {
-    console.log("🔒 Using signAndSendTransaction for enhanced security compliance");
-    
-    const result = await enhancedWallet.signAndSendTransaction(transaction, {
-      skipPreflight: false,
-      preflightCommitment: 'confirmed',
-      maxRetries: 3,
-    });
+  // BLOWFISH PREFERENCE: Use wallet.sendTransaction (this is equivalent to signAndSendTransaction)
+  if (wallet.sendTransaction && typeof wallet.sendTransaction === 'function') {
+    try {
+      console.log("🔒 Using wallet.sendTransaction for enhanced security compliance");
+      
+      const signature = await wallet.sendTransaction(transaction, connection, {
+        skipPreflight: false,
+        preflightCommitment: 'confirmed',
+        maxRetries: 3,
+      });
 
-    console.log('✅ Transaction sent via signAndSendTransaction:', result.signature);
-    return result.signature;
+      console.log('✅ Transaction sent via wallet.sendTransaction:', signature);
+      return signature;
+    } catch (error) {
+      console.error("❌ wallet.sendTransaction failed:", error);
+      // Fall through to backup method
+    }
   }
   
-  // FALLBACK: Use your original working method if signAndSendTransaction not available
-  console.log("🔄 Falling back to signTransaction + sendRawTransaction");
+  // FALLBACK: Use your original working method
+  console.log("🔄 Using signTransaction + sendRawTransaction (fallback)");
   
-  if (!enhancedWallet.signTransaction) {
+  if (!wallet.signTransaction || typeof wallet.signTransaction !== 'function') {
     throw new Error('Wallet does not support any compatible transaction signing method');
   }
 
   console.log("🔏 Getting wallet signature...");
-  const signedTx = await enhancedWallet.signTransaction(transaction);
+  const signedTx = await wallet.signTransaction(transaction);
   
   console.log("📡 Sending transaction...");
   const signature = await connection.sendRawTransaction(signedTx.serialize(), {
@@ -102,25 +112,22 @@ async function sendTransactionSmart(
 }
 
 // Multiple RPC endpoints with fallback
-const RPC_ENDPOINTS = {
-  HELIUS: "https://rpc.helius.xyz/?api-key=908f61ba-2bc3-4475-a583-e5cac9d8dae8",
-  GENESYSGO: "https://ssc-dao.genesysgo.net",
-  PUBLIC: "https://api.mainnet-beta.solana.com",
-};
+
 
 // Get RPC endpoints from env or use defaults with fallback logic
 const getEndpoint = (isMainnet: boolean = true): string => {
-  if (!isMainnet) return "https://api.devnet.solana.com";
-  
+  // Always prefer environment variable for endpoint
   const envEndpoint = import.meta.env.VITE_RPC_ENDPOINT;
   if (envEndpoint) return envEndpoint;
+
+  if (!isMainnet) return "https://api.devnet.solana.com";
   
-  if (window.localStorage.getItem('helius_rate_limited') === 'true') {
+  if (typeof window !== 'undefined' && window.localStorage.getItem('helius_rate_limited') === 'true') {
     console.log("Using fallback RPC endpoint due to previous rate limiting");
-    return RPC_ENDPOINTS.PUBLIC;
+    return "https://api.mainnet-beta.solana.com";
   }
-  
-  return RPC_ENDPOINTS.HELIUS;
+  // Default fallback if nothing else is set
+  return "https://rpc.helius.xyz/?api-key=908f61ba-2bc3-4475-a583-e5cac9d8dae8";
 };
 
 // Enhanced connection initialization with retries and WebSocket

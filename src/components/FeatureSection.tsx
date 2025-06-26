@@ -68,8 +68,8 @@ const FeatureSection: React.FC = () => {
                   Automatic Revenue Generation
                 </h3>
                 <p className="text-white/80">
-                  Every token comes with a built-in 0.1% transfer fee mechanism, automatically
-                  collecting fees on all transfers to sustain your token ecosystem.
+                  Every Enterprise token comes with a built-in transfer fee mechanism, automatically
+                  collecting fees of up to 5% on all transfers to sustain your token ecosystem.
                 </p>
               </div>
             </div>
