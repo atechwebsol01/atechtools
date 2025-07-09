@@ -19,7 +19,7 @@ const ViralShareKit: React.FC<ViralShareKitProps> = ({ tokenName, tokenSymbol, t
 
   // Generate viral tweet templates
   const tweetTemplates = [
-    `🚀 Just launched $${tokenSymbol} on @atechtools!
+    `🚀 Just launched $${tokenSymbol} on @atechtoolsorg!
 
 ${tokenName} is live and ready to take over Solana! 🌟
 
@@ -33,7 +33,7 @@ Who's joining the $${tokenSymbol} movement? Drop your support below! 👇
     
     `💎 NEW GEM ALERT: $${tokenSymbol} 💎
 
-Just launched ${tokenName} using @atechtools - the future of Solana tokens!
+Just launched ${tokenName} using @atechtoolsorg - the future of Solana tokens!
 
 🔥 Fair launch
 🔥 No presale
@@ -64,7 +64,7 @@ We're excited to announce the official launch of our token on Solana!
 • Name: ${tokenName}
 • Symbol: $${tokenSymbol}
 • Network: Solana
-• Features: 0.1% transfer fee, Community-driven
+• Features: Up to 5% transfer fee, Community-driven
 
 **Why ${tokenSymbol}?**
 ✅ Built with cutting-edge tech

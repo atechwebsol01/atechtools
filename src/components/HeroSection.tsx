@@ -9,10 +9,14 @@ import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Zap, TrendingUp, Users } from 'lucide-react';
 
+const API_BASE = '/api';
+
 const HeroSection: React.FC = () => {
   const { publicKey } = useWallet();
   const { setVisible } = useWalletModal();
   const [currentSuccess, setCurrentSuccess] = useState(0);
+  const [tokensCreated, setTokensCreated] = useState(0);
+  const [activeCreators, setActiveCreators] = useState(0);
   
   // Rotating success stories
   const successStories = [
@@ -26,6 +30,30 @@ const HeroSection: React.FC = () => {
     const interval = setInterval(() => {
       setCurrentSuccess((prev) => (prev + 1) % successStories.length);
     }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fetch tokens created
+  useEffect(() => {
+    fetch(`${API_BASE}/tokens.php`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) setTokensCreated(data.tokens.length);
+      });
+  }, []);
+
+  // Fetch active creators (online)
+  useEffect(() => {
+    fetch(`${API_BASE}/online.php`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) setActiveCreators(data.online);
+      });
+    const interval = setInterval(() => {
+      fetch(`${API_BASE}/online.php`).then(res => res.json()).then(data => {
+        if (data.success) setActiveCreators(data.online);
+      });
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -108,19 +136,13 @@ const HeroSection: React.FC = () => {
           <div className="flex items-center gap-2">
             <Users className="text-token-purple" size={20} />
             <span className="text-white/80">
-              <span className="font-bold text-white">12,847</span> Active Creators
+              <span className="font-bold text-white">{activeCreators.toLocaleString()}</span> Active Creators
             </span>
           </div>
           <div className="flex items-center gap-2">
             <Zap className="text-token-yellow" size={20} />
             <span className="text-white/80">
-              <span className="font-bold text-white">89,423</span> Tokens Created
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <TrendingUp className="text-token-green" size={20} />
-            <span className="text-white/80">
-              <span className="font-bold text-white">15,234 SOL</span> Earned by Creators
+              <span className="font-bold text-white">{tokensCreated.toLocaleString()}</span> Tokens Created
             </span>
           </div>
         </motion.div>

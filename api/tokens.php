@@ -11,10 +11,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Database configuration
-$db_host = getenv('DB_HOST');
-$db_name = getenv('DB_NAME');
-$db_user = getenv('DB_USER');
-$db_pass = getenv('DB_PASS');
+$db_host = 'localhost';
+$db_name = 'atechto1_INFOBASE'; 
+$db_user = 'atechto1_INFOBASEUSER';
+$db_pass = '5wG}We8_R,6A';
 
 // Connect to MySQL
 try {
@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS tokens (
     mint_address VARCHAR(255) UNIQUE NOT NULL,
     creator_wallet VARCHAR(255) NOT NULL,
     plan ENUM('basic', 'advanced', 'enterprise') NOT NULL,
+    name VARCHAR(255) DEFAULT NULL,
+    symbol VARCHAR(32) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_creator (creator_wallet),
     INDEX idx_plan (plan),
@@ -47,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
     
-    if (!$data || !isset($data['mint_address'], $data['creator_wallet'], $data['plan'])) {
+    if (!$data || !isset($data['mint_address'], $data['creator_wallet'], $data['plan'], $data['name'], $data['symbol'])) {
         http_response_code(400);
         echo json_encode(['error' => 'Missing required fields']);
         exit;
@@ -61,8 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     // Insert token
-    $stmt = $mysqli->prepare('INSERT INTO tokens (mint_address, creator_wallet, plan) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE plan = VALUES(plan)');
-    $stmt->bind_param('sss', $data['mint_address'], $data['creator_wallet'], $data['plan']);
+    $stmt = $mysqli->prepare('INSERT INTO tokens (mint_address, creator_wallet, plan, name, symbol) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE plan = VALUES(plan), name = VALUES(name), symbol = VALUES(symbol)');
+    $stmt->bind_param('sssss', $data['mint_address'], $data['creator_wallet'], $data['plan'], $data['name'], $data['symbol']);
     
     if ($stmt->execute()) {
         echo json_encode([
@@ -99,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
     
     // Build query
-    $query = 'SELECT id, mint_address, creator_wallet, plan, created_at FROM tokens';
+    $query = 'SELECT id, mint_address, creator_wallet, plan, name, symbol, created_at FROM tokens';
     if (!empty($where)) {
         $query .= ' WHERE ' . implode(' AND ', $where);
     }

@@ -59,7 +59,7 @@ const CreateToken: React.FC = () => {
   const [feesAccepted, setFeesAccepted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showViralKit, setShowViralKit] = useState(false);
-  const [createdTokenData, setCreatedTokenData] = useState<{mint: string; name: string; symbol: string} | null>(null);
+  const [createdTokenData, setCreatedTokenData] = useState<{mint: string; name: string; symbol: string; twitter?: string} | null>(null);
   const [description, setDescription] = useState(""); // Added missing description state
 
   // Live preview state
@@ -176,7 +176,7 @@ const CreateToken: React.FC = () => {
         symbol: tokenSymbol,
         decimals: tokenDecimals,
         royaltyPercentage: finalRoyaltyPercentage,
-        initialSupply: Number(tokenSupply),
+        initialSupply: tokenSupply, // Keep as string
         image: tokenImage || undefined,
         social: Object.keys(filteredSocialLinks).length > 0 ? filteredSocialLinks : undefined,
         plan: selectedPlan, // Include plan info
@@ -192,6 +192,7 @@ const CreateToken: React.FC = () => {
 
       const result = await createToken(wallet, metadata);
       
+      // After successful token creation, set twitter in ViralShareKit and social links
       if (result.success && result.mint) {
         // Success! Trigger confetti
         confetti({
@@ -205,6 +206,8 @@ const CreateToken: React.FC = () => {
           mint: result.mint.toString(),
           name: tokenName,
           symbol: tokenSymbol,
+          // Add default twitter username for viral kit
+          twitter: '@atechtoolsorg',
         });
 
         // Store token info in backend database
@@ -215,7 +218,9 @@ const CreateToken: React.FC = () => {
             body: JSON.stringify({
               mint_address: result.mint.toString(),
               creator_wallet: publicKey?.toString() || '',
-              plan: selectedPlan
+              plan: selectedPlan,
+              name: tokenName, // Add token name for home/latest success
+              symbol: tokenSymbol // Add symbol for completeness
             })
           });
         } catch (err) {
@@ -256,6 +261,8 @@ const CreateToken: React.FC = () => {
   };
 
   const handleNext = () => {
+    // Scroll to top on step change
+    window.scrollTo({ top: 0, behavior: "smooth" });
     if (step === 1) {
       setStep(2);
     } else if (step === 2) {
@@ -293,6 +300,11 @@ const CreateToken: React.FC = () => {
       handleCreateToken();
     }
   };
+
+  // Also scroll to top when step is set programmatically (e.g., after token creation or error)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
 
   // Plan display logic
   const getPlanDisplayName = (plan: string) => {
@@ -426,7 +438,7 @@ const CreateToken: React.FC = () => {
                   <p className="text-white/70 mb-4">For serious projects with custom royalties</p>
                   
                   <div className="flex items-baseline mb-4">
-                    <span className="text-4xl font-bold text-gradient-purple-blue">0.5</span>
+                    <span className="text-4xl font-bold text-gradient-purple-blue">0.25</span>
                     <span className="text-2xl font-bold text-white ml-1">SOL</span>
                   </div>
                   
@@ -1118,6 +1130,7 @@ const CreateToken: React.FC = () => {
                     tokenName={createdTokenData.name}
                     tokenSymbol={createdTokenData.symbol}
                     tokenMint={createdTokenData.mint}
+                    // Remove twitter prop if not supported by ViralShareKit
                   />
                 )}
                 <div className="mt-8 flex justify-center gap-4">
