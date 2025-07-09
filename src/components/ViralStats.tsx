@@ -25,7 +25,7 @@ const ViralStats: React.FC = () => {
           setTokensCreatedToday(tokensToday.length);
           // Use real tokens as success stories (latest 5)
           setSuccessStories(tokensToday.slice(0, 5).map((t: any) => ({
-            token: t.mint_address.slice(0, 8) + '...',
+            token: t.name ? `${t.name}${t.symbol ? ` ($${t.symbol})` : ''}` : t.mint_address.slice(0, 8) + '...',
             marketCap: '—',
             time: t.created_at.slice(11, 16)
           })));
