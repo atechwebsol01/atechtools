@@ -47,7 +47,7 @@ graph TD
 ## 🚀 **Key Features**
 
 ### **Token-2022 Creation & Management**
-- **Enterprise-grade token creation** with configurable transfer fees (0.2%-5%)
+- **Enterprise-grade token creation** with configurable transfer fees (0%-5%)
 - **On-chain metadata** with IPFS integration for immediate explorer recognition
 - **Revocable mint authority** with optional freeze capabilities
 - **Three-tier fee structure** (Basic: 0.2%, Premium: 2%, Enterprise: 5%)
@@ -231,8 +231,9 @@ interface SwapParams {
 For technical support, integration questions, or collaboration opportunities:
 
 - **GitHub Issues**: [Repository Issues]
-- **Documentation**: [Full API Documentation]
-- **Demo Video**: [Live Demo Walkthrough]
+- **Live Website**: https://atechtools.org
+- **Documentation**: https://atechtools.org/docs
+- **Demo Video**: https://youtu.be/s9gIsw7Yly4?si=XeIWZk8dsvAcKoMq
 
 ---
 
