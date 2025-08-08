@@ -1,5 +1,8 @@
 # Token-2022 AMM Trading Platform
 
+[![Watch the video](https://img.youtube.com/vi/s9gIsw7Yly4/0.jpg)](https://youtu.be/s9gIsw7Yly4?si=XeIWZk8dsvAcKoMq)
+
+
 > **Superteam Vietnam Bounty Solution**: First production-ready AMM to support Token-2022 with Transfer Hooks
 
 [![Solana](https://img.shields.io/badge/Solana-Mainnet-9945FF?logo=solana)](https://solana.com)
