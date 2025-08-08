@@ -1,3 +1,6 @@
+// API base URL for PHP endpoints (local/dev/prod)
+// Set this to your XAMPP server for local dev, e.g. 'http://localhost/api'
+export const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://atechtools.org/api';
 /**
  * Configuration settings for the application.
  * All environment variables are used through this configuration object.
@@ -50,13 +53,13 @@ export const BASIC_TIER_TRANSFER_FEE_BPS = getEnvNumber(import.meta.env.VITE_BAS
 export const ADVANCED_TIER_TRANSFER_FEE_BPS = 0; // 0% for advanced
 export const ENTERPRISE_TIER_TRANSFER_FEE_BPS = 0; // 0% for enterprise
 
-// Plan Pricing
-export const BASIC_CREATION_FEE = getEnvNumber(import.meta.env.VITE_BASIC_PLAN_FEE, 0);
-export const ADVANCED_CREATION_FEE = getEnvNumber(import.meta.env.VITE_ADVANCED_PLAN_FEE, 0.1);
-export const ENTERPRISE_CREATION_FEE = getEnvNumber(import.meta.env.VITE_ENTERPRISE_PLAN_FEE, 0.25);
-export const METADATA_FEE_BASIC = getEnvNumber(import.meta.env.VITE_METADATA_FEE_BASIC, 0.01);
-export const METADATA_FEE_ADVANCED = getEnvNumber(import.meta.env.VITE_METADATA_FEE_ADVANCED, 0.01);
-export const METADATA_FEE_ENTERPRISE = getEnvNumber(import.meta.env.VITE_METADATA_FEE_ENTERPRISE, 0.01);
+// Plan Pricing (Basic: free, Advanced: 0.01 SOL, Enterprise: 0.015 SOL)
+export const BASIC_CREATION_FEE = 0;
+export const ADVANCED_CREATION_FEE = 0.01;
+export const ENTERPRISE_CREATION_FEE = 0.015;
+export const METADATA_FEE_BASIC = 0.01;
+export const METADATA_FEE_ADVANCED = 0.01;
+export const METADATA_FEE_ENTERPRISE = 0.01;
 
 // Maximum fees for Token-2022
 export const MAX_TRANSFER_FEE = {

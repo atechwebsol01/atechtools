@@ -40,7 +40,7 @@ const Documentation: React.FC = () => {
                   <h3 className="text-xl font-bold text-white mb-3">Key Features</h3>
                   <ul className="list-disc list-inside space-y-2 text-white/80">
                     <li>Step-by-step wizard for token creation</li>
-                    <li>0% platform fees on ADVANCED AND ENTERPRSISE plans</li>
+                    <li>0% platform fees on ADVANCED (0.01 SOL) and ENTERPRISE (0.015 SOL) plans</li>
                     <li>Customizable supply, decimals, and advanced metadata</li>
                     <li>Mintable, burnable, and royalty-enabled tokens</li>
                     <li>Stunning dashboard for managing all your tokens</li>
@@ -107,9 +107,9 @@ const Documentation: React.FC = () => {
                       Select the plan that best fits your token requirements:
                     </p>
                     <ul className="list-disc list-inside space-y-1 text-white/80">
-                      <li><strong>BASIC (FREE!!!):</strong> Standard SPL token with fixed supply and basic metadata</li>
-                      <li><strong>ADVANCED:</strong> Adds mintable/burnable functionality, royalties, enhanced metadata</li>
-                      <li><strong>ENTERPRISE:</strong> All features plus multi-sig, advanced analytics, priority processing</li>
+                      <li><strong>BASIC (FREE):</strong> Standard SPL token with fixed supply and basic metadata</li>
+                      <li><strong>ADVANCED (0.01 SOL):</strong> Adds mintable/burnable functionality, royalties, enhanced metadata</li>
+                      <li><strong>ENTERPRISE (0.015 SOL):</strong> All features plus multi-sig, advanced analytics, priority processing</li>
                     </ul>
                   </div>
 
@@ -326,8 +326,8 @@ const Documentation: React.FC = () => {
                       <p className="text-white/80">
                         Aurora Token Forge offers three pricing tiers:
                         <br />- Basic: 0 SOL + 0.01 SOL metadata fee
-                        <br />- Advanced: 0.1 SOL + 0.01 SOL metadata fee
-                        <br />- Enterprise: 0.25 SOL + 0.01 SOL metadata fee
+                        <br />- Advanced: 0.01 SOL + 0.01 SOL metadata fee
+                        <br />- Enterprise: 0.015 SOL + 0.01 SOL metadata fee
                         <br />
                         Additional Solana network fees apply (typically very small).
                       </p>

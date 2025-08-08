@@ -8,8 +8,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Zap, TrendingUp, Users } from 'lucide-react';
-
-const API_BASE = '/api';
+import { API_BASE } from '../config';
 
 const HeroSection: React.FC = () => {
   const { publicKey } = useWallet();

@@ -6,6 +6,7 @@ import { useTokenContext } from '@/context/TokenContext';
 import { getPlanFeatures, getPlanFee, getMetadataFee, ROYALTY } from '@/config';
 import confetti from 'canvas-confetti';
 import { useNavigate } from "react-router-dom";
+import { API_BASE } from '../config';
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { motion } from "framer-motion";
@@ -212,7 +213,7 @@ const CreateToken: React.FC = () => {
 
         // Store token info in backend database
         try {
-          await fetch('https://atechtools.org/api/tokens.php', {
+          await fetch(`${API_BASE}/tokens.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -310,11 +311,11 @@ const CreateToken: React.FC = () => {
   const getPlanDisplayName = (plan: string) => {
     switch (plan) {
       case 'basic':
-        return 'BASIC (FREE!!!)';
+        return 'BASIC (FREE)';
       case 'advanced':
-        return 'ADVANCED';
+        return 'ADVANCED (0.01 SOL)';
       case 'enterprise':
-        return 'ENTERPRISE';
+        return 'ENTERPRISE (0.015 SOL)';
       default:
         return plan;
     }
@@ -402,7 +403,7 @@ const CreateToken: React.FC = () => {
                   <p className="text-white/70 mb-4">Everything you need to succeed</p>
                   
                   <div className="flex items-baseline mb-4">
-                    <span className="text-4xl font-bold text-gradient-purple-blue">0.1</span>
+                    <span className="text-4xl font-bold text-gradient-purple-blue">0.01</span>
                     <span className="text-2xl font-bold text-white ml-1">SOL</span>
                   </div>
                   
@@ -438,7 +439,7 @@ const CreateToken: React.FC = () => {
                   <p className="text-white/70 mb-4">For serious projects with custom royalties</p>
                   
                   <div className="flex items-baseline mb-4">
-                    <span className="text-4xl font-bold text-gradient-purple-blue">0.25</span>
+                    <span className="text-4xl font-bold text-gradient-purple-blue">0.015</span>
                     <span className="text-2xl font-bold text-white ml-1">SOL</span>
                   </div>
                   
@@ -972,7 +973,7 @@ const CreateToken: React.FC = () => {
                   {selectedPlan === 'basic' && (
                     <div className="p-3 bg-token-green/10 rounded-lg mt-4">
                       <p className="text-token-green text-sm font-medium">
-                        🎉 You're saving 0.3 SOL with our limited-time FREE plan!
+                        🎉 The Basic plan is now <b>FREE</b>!
                       </p>
                     </div>
                   )}

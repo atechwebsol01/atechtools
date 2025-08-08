@@ -31,7 +31,7 @@ const testimonials: Testimonial[] = [
     name: 'Sarah Moon',
     handle: '@moontokens',
     avatar: '🌙',
-    content: "Best decision ever! My $MOON token hit $1M market cap in 3 days. The free tier is actually FREE - unbelievable!",
+    content: "Best decision ever! My $MOON token hit $1M market cap in 3 days. The Basic plan is actually FREE - unbelievable!",
     tokens: 3,
     earnings: '28.7 SOL',
     verified: true,

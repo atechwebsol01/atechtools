@@ -2,9 +2,6 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { 
-  BASIC_CREATION_FEE,
-  ADVANCED_CREATION_FEE,
-  ENTERPRISE_CREATION_FEE,
   METADATA_FEE_BASIC,
   METADATA_FEE_ADVANCED,
   METADATA_FEE_ENTERPRISE
@@ -28,11 +25,11 @@ const PricingSection: React.FC = () => {
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-token-green text-white px-4 py-1 rounded-full text-sm">
               LIMITED TIME
             </div>
-            <h3 className="text-2xl font-bold text-white mb-4">BASIC (FREE!!!)</h3>
+            <h3 className="text-2xl font-bold text-white mb-4">BASIC (FREE)</h3>
             <div className="text-3xl font-bold text-gradient-purple-blue mb-2">
               0 SOL
             </div>
-            <p className="text-sm text-token-green mb-6">Usually {BASIC_CREATION_FEE} SOL</p>
+            <p className="text-sm text-token-green mb-6">No cost for a limited time!</p>
             <div className="text-sm text-white/60 mb-2">+ {METADATA_FEE_BASIC} SOL metadata fee</div>
             <div className="space-y-4 mb-8">
               <div className="flex items-start">
@@ -65,7 +62,7 @@ const PricingSection: React.FC = () => {
             </div>
             <h3 className="text-2xl font-bold text-white mb-4">ADVANCED</h3>
             <div className="text-3xl font-bold text-gradient-purple-blue mb-2">
-              {ADVANCED_CREATION_FEE} SOL
+              0.01 SOL
             </div>
             <div className="text-sm text-white/60 mb-2">+ {METADATA_FEE_ADVANCED} SOL metadata fee</div>
             <h4 className="text-white font-medium">Transfer Fee</h4>
@@ -92,7 +89,7 @@ const PricingSection: React.FC = () => {
           <div className="glass-card p-8 rounded-xl border border-white/10">
             <h3 className="text-2xl font-bold text-white mb-4">ENTERPRISE</h3>
             <div className="text-3xl font-bold text-gradient-purple-blue mb-2">
-              {ENTERPRISE_CREATION_FEE} SOL
+              0.015 SOL
             </div>
             <div className="text-sm text-white/60 mb-2">+ {METADATA_FEE_ENTERPRISE} SOL metadata fee</div>
             <h4 className="text-white font-medium">Transfer Fee</h4>

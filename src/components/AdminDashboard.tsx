@@ -851,9 +851,9 @@ const AdminDashboard: React.FC = () => {
                 <p className="font-medium text-white/90 mb-2">Treasury Fee Collection System:</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <ul className="space-y-1 text-xs">
-                    <li>• <strong>BASIC tier</strong>: 0.2% fees → treasury wallet</li>
-                    <li>• <strong>ADVANCED tier</strong>: No fees (free tier)</li>
-                    <li>• <strong>ENTERPRISE tier</strong>: Custom royalties → creator</li>
+                    <li>• <strong>BASIC tier (FREE)</strong>: 0.2% fees → treasury wallet</li>
+                    <li>• <strong>ADVANCED tier (0.01 SOL)</strong>: No fees</li>
+                    <li>• <strong>ENTERPRISE tier (0.015 SOL)</strong>: Custom royalties → creator</li>
                   </ul>
                   <ul className="space-y-1 text-xs">
                     <li>• Fees accumulate in token accounts from transfers</li>

@@ -8,6 +8,7 @@ import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import RoyaltyClaimCard from '@/components/RoyaltyClaimCard';
 import GamificationPanel from '@/components/GamificationPanel';
 import { LiquidityDialog } from '@/components/LiquidityModal';
+import { TradingInterface } from '@/components/TradingInterface';
 import NavBar from '@/components/NavBar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -40,7 +41,7 @@ const Dashboard: React.FC = () => {
     solBalance
   } = useTokenContext();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'creator-royalties' | 'gamification'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'creator-royalties' | 'trading' | 'gamification'>('overview');
 
   // Check if current user is admin
   const isAdmin = publicKey ? isAdminWallet(publicKey.toString()) : false;
@@ -205,7 +206,8 @@ const Dashboard: React.FC = () => {
                 {[
                   { id: 'overview', name: 'Token Overview', icon: Coins },
                   { id: 'creator-royalties', name: 'Creator Royalties', icon: Crown },
-                  { id: 'gamification', name: 'Achievements', icon: TrendingUp },
+                  { id: 'trading', name: 'Trading', icon: TrendingUp },
+                  { id: 'gamification', name: 'Achievements', icon: Shield },
                 ].map((tab) => {
                   const Icon = tab.icon;
                   return (
@@ -359,6 +361,47 @@ const Dashboard: React.FC = () => {
               {/* Creator Royalties Tab */}
               {activeTab === 'creator-royalties' && (
                 <RoyaltyClaimCard />
+              )}
+
+              {/* Trading Tab */}
+              {activeTab === 'trading' && (
+                <div className="space-y-6">
+                  <div className="text-center mb-6">
+                    <h3 className="text-2xl font-bold text-gradient-purple-blue mb-2">
+                      Token-2022 Trading Hub
+                    </h3>
+                    <p className="text-white/70">
+                      Trade your tokens with transfer fees on Raydium pools
+                    </p>
+                  </div>
+                  
+                  <TradingInterface 
+                    defaultTokenA={tokens.length > 0 ? {
+                      mint: tokens[0].mint,
+                      symbol: tokens[0].symbol,
+                      name: tokens[0].name,
+                      decimals: tokens[0].decimals,
+                      balance: parseFloat(tokens[0].balance || '0'),
+                      isToken2022: true,
+                      transferFeeBps: tokens[0].plan === 'basic' ? 20 : 
+                                    tokens[0].plan === 'enterprise' ? 500 : 0, // Example fee rates
+                    } : undefined}
+                  />
+                  
+                  {tokens.length === 0 && (
+                    <div className="text-center py-8">
+                      <p className="text-white/60 mb-4">
+                        Create a token first to start trading
+                      </p>
+                      <Link to="/create">
+                        <Button className="btn-gradient-primary">
+                          <Plus className="mr-2" size={16} />
+                          Create Token
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* Gamification Tab */}

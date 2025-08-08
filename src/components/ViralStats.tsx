@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, Users, Zap } from 'lucide-react';
-
-const API_BASE = '/api';
+import { API_BASE } from '../config';
 
 const ViralStats: React.FC = () => {
   const [tokensCreatedToday, setTokensCreatedToday] = useState(0);
@@ -41,7 +40,9 @@ const ViralStats: React.FC = () => {
         if (data.success) setActiveCreators(data.online);
       });
     const interval = setInterval(() => {
-      fetch(`${API_BASE}/online.php`).then(res => res.json()).then(data => {
+      fetch(`${API_BASE}/online.php`)
+        .then(res => res.json())
+        .then(data => {
         if (data.success) setActiveCreators(data.online);
       });
     }, 30000);
